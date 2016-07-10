@@ -1,0 +1,7 @@
+sudo apt-get install cpu-checker
+sudo kvm-ok
+/**
+INFO: /dev/kvm exists
+KVM acceleration can be used
+**/
+
