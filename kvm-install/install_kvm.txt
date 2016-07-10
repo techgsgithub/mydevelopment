@@ -1,0 +1,40 @@
+
+sudo apt-get install qemu-kvm qemu virt-manager virt-viewer libvirt-bin bridge-utils 
+
+/**  Defult Locations
+
+    Default directory: /var/lib/libvirt/
+    ISO images for installation: /var/lib/libvirt/boot/
+    VM installation directory: /var/lib/libvirt/images/
+    Libvirt configuration directory for LVM/LXC/qemu: /etc/libvirt/
+**/
+
+Networking.
+
+sudo cp  /etc/network/interfaces    /etc/network/interfaces-original 
+sudo nano  /etc/network/interfaces
+
+  # Enabing Bridge networking br0 interface
+
+# Default 
+auto lo
+iface lo inet loopback
+
+# Set  ethernet to manual
+  
+#auto enp1s0
+iface enp1s0 inet manual
+
+# Set Static Bridge. 
+
+auto br0
+iface br0 inet static
+address 192.168.1.10
+network 192.168.1.0
+netmask 255.255.255.0
+broadcast 192.168.1.255
+gateway 192.168.1.1
+dns-nameservers 8.8.8.8
+bridge_ports eth0
+bridge_stp off
+
