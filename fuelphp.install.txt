@@ -1,0 +1,35 @@
+1. Using composer install.
+
+2. chgrp /var/www/html/fuel directory.
+
+3 change config for database connectivity.  
+
+fuel/app/config/development/db.php:
+
+<?php
+//...
+return array(
+  'default' => array(
+    'connection' => array(
+      'dsn' => 'mysql:host=localhost;dbname=fuel_dev',
+      'username' => 'root',
+      'password' => 'root',
+    ),
+  ),
+);
+
+
+4.  Enable ORM
+
+  edit /var/www/html/fuel/fuel/app/config 
+
+'always_load' => array(
+    'packages' => array(
+        'orm',
+    ),
+),
+
+5.  First visit to website  --  copy the crypt error page and 
+the entire code in  /var/www/html/fuel/fuel/app/config/crypt.php
+
+should be working with virtual host
