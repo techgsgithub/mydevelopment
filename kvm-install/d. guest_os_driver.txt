@@ -1,0 +1,7 @@
+
+Download the iso file from following link.
+
+https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso
+
+Add the cdrom in windows vm + insert downloaded iso  and install.
+
