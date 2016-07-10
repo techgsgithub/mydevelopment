@@ -1,0 +1,47 @@
+1.  Create VM Directory.
+    
+    a.  Create first blank image ( with thin provisioning )
+        qemu-img create -f qcow2 test.img 50g  // This will create 50 GB image 
+        
+    b. Use this image to Install OS
+    
+    c. Update OS + Applications
+        
+    d. Delete the VM without deleting the storage 
+    
+       Rename the test.img  to os_plus_application_base.template
+       
+       Make it readonly.  
+    
+    d. Create linked images from the images.
+    
+    e. Create VM's  from newsly created images.
+    qemu-img create -f qcow2 -b os_plus_application_base.template  vm1.img
+    
+    Furher you can create links and use those links while creating VM.  So when accidently VM is deleted only links will 
+    will be delated and not actil disk file.  
+    
+    Notes :
+    ========
+    qemu-img info vm1.img     //  This will show the backing file ( which template is used )
+    
+    Image Conversions :
+    =====================
+    
+    VMDK to Raw --->.
+    qemu-img convert -f vmdk -O raw image.vmdk image.img
+    
+    VMDK to qcow2  --->
+    qemu-img convert -f vmdk -O qcow2 image.vmdk image.qcow2
+    
+    VDI  to  qcow2 ---->
+    qemu-img convert -f vdi -O qcow2 vm.vdi vm.qcow2
+    
+
+
+    
+    
+    
+
+    
+         
