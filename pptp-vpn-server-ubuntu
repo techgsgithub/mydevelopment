@@ -1,0 +1,2 @@
+wget https://raw.github.com/viljoviitanen/setup-simple-pptp-vpn/master/setup.sh
+sudo sh setup.sh
