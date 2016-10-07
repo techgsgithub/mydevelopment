@@ -1,0 +1,21 @@
+Step 1 - At the grub boot menu, press 'e' to edit the bootup settings.
+
+Step 2 - go down to the line starting with "linux16 /vmlinuz" (it will probably span multiple lines) and add a " 3" to the end (that is a space, then a '3'). This will tell the bootup scripts to load only the text console, and not attempt to start a graphical login screen.
+
+Step 3 - Press CTRL-X to bootup.
+
+Step 4 - login as root.
+
+Step 5 - "vi /etc/gdm/custom.conf" (or use your editor preference instead of vi), and delete the leading "#" from the line "#WaylandEnable=false". Save the file.
+
+Step 6 - Reboot and enjoy :)
+
+Few Steps after Install
+Login as root
+
+dnf check-updates
+dfg upgrade
+
+Add new uer to sudo users file
+
+usermod actual_username -a -G wheel
