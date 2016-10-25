@@ -1,0 +1,74 @@
+Ubuntu Server  with bcache
+
+
+Valid only for new installation. 
+
+Steps:
+
+Here are the major steps:
+1. Boot the Ubuntu installer 
+2. Create a partitions for /boot, the backing, and cache devices. 
+3. Create the bcache device 
+4. Install Ubuntu onto /dev/bcache0 
+5. While still in the live CD, chroot into the new installation 
+6. Install bcache-tools and re-generate initramfs 
+7. Reboot into a fully functional system. 
+
+
+Now, boot into the Ubuntu installer.  
+
+Now, lets assume that your SSD is /dev/sda and your hard disk is /dev/sdb. Create the following partitioning scheme:
+/dev/sda1 - 1024 MB, EXT4, used for /boot   -->> On SSD
+/dev/sda2 - any format, for cache  -->> ON SSD 
+/dev/sdb1 - EFI partition (if your machine needs it)
+/dev/sdb2 – swap  -->>  ON HDD
+/dev/sdb3 - any format, backing partition  -- >> ON HDD
+
+First, connect to the Internet. Make sure the connection is working. Next open up a terminal and wipe the cache and backing partition file systems:
+sudo wipefs -a /dev/sda2
+sudo wifefs -a /dev/sdb3
+
+Next we will install bcache-tools and create the bcache device.
+sudo apt-get update
+sudo apt-get install bcache-tools
+sudo make-bcache -B /dev/sdb3 -C /dev/sda2
+sudo mkfs.ext4 /dev/bcache0
+Notice the command to make-bcache used the HDD partition, /dev/sdb3, as the backing (-B) device and the SDD partition, /dev/sda2, as the cache (-C) device.
+
+
+
+WITHOUT rebooting, run the Ubuntu installer from the desktop. When you get to the installation type screen which lets you pick how to install the OS (e.g. the page that says “Erase disk and install Ubuntu” or “Something else”) choose to do custom partitioning.
+In the partitioning dialog configure the following:
+/dev/bcache0 - format EXT4, use as /
+/dev/sda1    - format EXT4, use as /boot
+/dev/sdb1    - EFI partition (if your machine needs it)
+/dev/sdb2    - swap
+Proceed with the installation as normal. When it completes DO NOT REBOOT as the initramfs installed by the live CD does not have the bcache kernel module. If you accidentally rebooted, simply go back in to the live image, install the bcache-tools package as described above and continue with the instructions below.
+Installing bcache on the new installation
+ What we’re going to do is switch to the new operating system without booting and install some software to get bcache-tools installed and a new initramfs generated so the computer will boot.
+First we are going to create a valid chroot environment. We start by mounting several directories from the new installation into specific subdirectories in order to create the directory structure Ubuntu Linux expects:
+sudo mount /dev/bcache0 /mnt
+sudo mount /dev/sda1 /mnt/boot
+sudo mount --bind /dev /mnt/dev
+sudo mount --bind /proc /mnt/proc
+sudo mount --bind /sys /mnt/sys
+Because we will need Internet access, we need to copy the DNS configuration from the live CD into the chroot environment:
+sudo cp /etc/resolv.conf /mnt/etc/resolv.conf
+Next we put ourselves into the chroot:
+sudo chroot /mnt
+Now we are effectively within the new installation’s file system. So all we need to do is install bcache-tools
+sudo apt-get update
+sudo apt-get install bcache-tools
+After the package is installed, you should notice that the initramfs is re-generated and installed. You can check the timestamps on the files in /boot against date to confirm this is the case.
+Now we clean up. Exit the chroot, cleanly dismount the file system, and reboot:
+exit
+sudo umount /mnt/sys
+sudo umount /mnt/proc
+sudo umount /mnt/dev
+sudo umount /mnt/boot
+sudo umount /mnt
+sudo reboot
+Post-install
+Restore the default resolv.conf configuration
+sudo ln -sf ../run/resolvconf/resolv.conf /etc/resolv.conf
+With any luck, your machine will reboot normally and you will have a fully functional Ubuntu installation with bcache out of the box 
