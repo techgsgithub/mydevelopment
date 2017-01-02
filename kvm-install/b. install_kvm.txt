@@ -1,6 +1,7 @@
 
 sudo apt-get install qemu-kvm qemu virt-manager virt-viewer libvirt-bin bridge-utils 
-
+OPTIONAL :  sudo  apt install libguestfs-tools  (  This package contains virtualization tools, including virt-cat, virt-df,
+ virt-edit, virt-filesystems, virt-inspector, virt-ls, virt-make-fs,  virt-rescue, virt-resize, virt-tar, and virt-win-reg  like command line utilities )
 /**  Defult Locations
 
     Default directory: /var/lib/libvirt/
