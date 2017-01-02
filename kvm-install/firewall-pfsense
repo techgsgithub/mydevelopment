@@ -1,0 +1,50 @@
+##  This is a procedure for providing inbuilt firewall for kvm host ##
+##  Recommeded firewall for usage is pfsense  ##
+
+Procedure :
+
+1.  Create isolated bridge from cli only.  (  Do not use any virt-manager )
+
+      a.  Create XML File  with following code 
+       
+       <network> <name>privatenet</name> <bridge name="privatebr0" /> </network>
+       
+      b.  Create a bridge from the command line
+      
+        virsh net-define privatenet.xml
+        
+      c.  Start the bridge.
+      
+        net-start privatenet
+        
+      d.  Set it as auto-start bridge.
+      
+        net-autostart privatenet
+        
+        
+2.   Now Install PfSense from its iso file and set the VM as autostart( Recommended for SERVER Installation only )
+     
+     The VM will require  two Virtual Lan Cards or more.
+     
+     WAN SIDE  ->>>>  Bridge br0: Host Device.
+     
+     LAN SIDE  ->>>>  Virtual Network created Earlier.
+     
+     Additional Lan Cards for setting  VPN and other stuff.
+     
+     
+     On all Further VM's  use Virtual Network Card only.
+     
+     This will help to provide firewall services to ALL VM's inside the kvm.
+     
+
+3.  Notes : A. PFsense by default, will not ping from outside ( wan address ) .  You need to  allow icmp package allow from VM.
+            B. You need to nat with port required for your next vms.
+            c. To manage the pfsense from hostside network  --- switch to https protocall  --  provide 444 as port number --  Pass rule 
+               to allow port 444 to lan address.
+               
+               
+
+     
+    
+    
