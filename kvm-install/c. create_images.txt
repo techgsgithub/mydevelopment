@@ -3,9 +3,10 @@
     a.  Create first blank image ( with thin provisioning )
         qemu-img create -f qcow2 test.img 50g  // This will create 50 GB image 
         
-    b. Use this image to Install OS
+    b. Use this image to Install OS  ( For Ubuntu install as OEM Install only )
     
-    c. Update OS + Applications
+    c. Update OS + Applications +  Once everything  looks okay,  run sysprep utility and shut down the VM.  This will allow 
+       to ask for new username and password etc for further VM's.
         
     d. Delete the VM without deleting the storage 
     
