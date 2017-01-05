@@ -1,3 +1,5 @@
+
+###  create .nanorc to root of your home directory with following contents ( Valid for Ubuntu )
 include /usr/share/nano/default.nanorc
 include /usr/share/nano/sh.nanorc
 include /usr/share/nano/php.nanorc
