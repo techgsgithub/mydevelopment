@@ -22,6 +22,23 @@
     Furher you can create links and use those links while creating VM.  So when accidently VM is deleted only links will 
     will be delated and not actil disk file.  
     
+    Very Important :
+    ================
+    
+    To merge child vm with its backing file  please run following command.
+    
+    qemu-img convert -f qcow2  name-of-child.img  -O qcow2 new-image.img   (  You will not need backing file name etc, it will find on its own. ) 
+    
+    
+    Once the windows vm is ready with all updates and applications,  you will need to run sysprep utility ( Loation c:\windows\system32\syspre\)
+    
+    For Linux you will need to install virt-sysprep
+    Example... 
+    
+    virt-sysprep -a childvm.img  --hostname examplehost  --root-password password:123456
+    
+    
+    
     Notes :
     ========
     qemu-img info vm1.img     //  This will show the backing file ( which template is used )
@@ -38,7 +55,6 @@
     VDI  to  qcow2 ---->
     qemu-img convert -f vdi -O qcow2 vm.vdi vm.qcow2
     
-
 
     
     
