@@ -1,0 +1,155 @@
+Untested ....
+===============================
+
+we step you through the very basics in setting up a DRBD Pacemaker HA Cluster on Ubuntu 16.04 LTS. This can make up the foundation of many clusters as, at the DRBD level, we can make the filesystem highly available, We are using two Ubuntu 16.04 servers for the demonstration. This is the latest LTS version from Ubuntu and both DRBD and Pacemaker are in the standard repos.
+DRBD
+
+This component manages replication of your data at the block device level. Distributed Replicated Block Device. You can find more detail at DRBD.org. The link is to the version 8.4 docs which is the version included with Ubuntu 16.04. For commercial support and training then this is offered by Linbit. To nice thing with DRBD is that it creates a shared-nothing cluster. There is no central shared SAN or iSCSI disk to go wrong. The data is replicated between nodes so nothing is shared other than the data.
+
+There is a kernel module and user-space tools to implement this and these can be installed with:
+
+sudo apt-get update
+sudo apt-get install -y drbd8-utils
+
+With this installed you want to make sure that you can resolve you hostname to the IP Address you want you use in the cluster. For this edit the /etc/hosts and make sure you replace the 127.0.1.1 entry with you actual hostname. In the example we use two hosts bob and alice and in each /etc/hosts file we have the same entries:
+
+127.0.0.1 localhost
+192.168.56.101 bob
+192.168.56.102 alice
+
+We should also make sure that NTP, Network Time Protocol is installed for accurate time:
+
+sudo apt-get install -y ntp
+
+The ntp package and drbd8-utils should be installed on both hosts to ensure we can proceed with the DRBD Pacemaker HA Cluster.
+
+Additionally on both hosts we should have and additional unused disk. On this disk we create a partition of the same size on each host so that we can replicate data. On each host we will create a 1 GB partition (1 GB is the size of the disk I am using. We do  not format the disk but ensure that it is clean with the command dd:
+
+sudo dd if=/dev/zero of=/dev/sdb1
+
+Next, on each host edit the /etc/drbd.conf
+
+global { usage-count no; }
+common { protocol C; }
+resource r0 {
+  on bob {
+    device /dev/drbd0;
+    disk /dev/sdb1;
+    address 192.168.56.101:7788;
+    meta-disk internal;
+  }
+  on alice {
+    device /dev/drbd0;
+    disk /dev/sdb1;
+    address 192.168.56.102:7788;
+    meta-disk internal;
+  }
+}
+
+Make sure you use the correct IP Address for your hosts and the correct physical partition.
+Still working on both systems we need to load the kernel module with:
+
+sudo modprobe drbd
+
+Create the mirror device:
+
+sudo drbdadm create-md r0
+
+And then bring the mirror device online
+
+sudo drbdadm up r0
+
+We can list the new block device with lsblk. Note the major number of 147 for DRBD. To view the status of the mirroring we can use one of the following commands:
+
+sudo drbd-overview
+sudo cat /etc/drbd
+
+We will see both nodes a secondary and the data to be inconsistent. We can correct this by forcing the Primary role on one node. Only do this on one node!
+
+ sudo drbdadm -- --overwrite-data-of-peer primary r0/0
+
+This can take many hours on large disk, a few minutes on this 1 GB disk. To view the progress:
+
+sudo watch cat /proc/drbd
+
+Once complete from the Primary node we can format the disk and mount it.
+
+sudo mkfs.ext4 /dev/drbd0
+sudo mkdir -p /var/www/html
+sudo mount /dev/drbd0 /var/www/html
+
+We can then add data if we want to the new data. We use the given path as we can use this for the Apache Web Server in later blog.
+Now while this is very good, nothing has been automated. To have the other node service this we must first un-mount the device, change primary to secondary, change secondary to primary and mount the device. Hardly high;y available. This is where the Cluster Resource Manager comes into play to manage this for us.
+Pacemaker
+We will use Pacemaker as our Cluster Resource Manager and support can be gained for this from Linbit as with DRBD. When installing Pacemaker we will also install Corosync that is used to sync the Pacemaker cluster details. On both nodes we must first ensure that the DRBD service is not enabled on either node.
+
+sudo systemctl disable drbd
+
+We should also unsure the the directory is not mounted and the drbd device is not in use on either node:
+
+sudo umount /var/www/htmlsudo drbdadm down r0
+
+Then we can install Pacemaker on both nodes:
+sudo apt-get install -y pacemaker
+Create the following /etc/corosync/corosync.conf file on both devices
+
+totem {
+  version: 2
+  cluster_name: debian
+  secauth: off
+  transport:udpu
+  interface {
+    ringnumber: 0
+    bindnetaddr: 192.168.56.0
+    broadcast: yes
+    mcastport: 5405
+  }
+}
+
+nodelist {
+  node {
+    ring0_addr: 192.168.56.101
+    name: bob
+    nodeid: 1
+  }
+  node {
+    ring0_addr: 192.168.56.102
+    name: alice
+    nodeid: 2
+  }
+}
+
+quorum {
+  provider: corosync_votequorum
+  two_node: 1
+  wait_for_all: 1
+  last_man_standing: 1
+  auto_tie_breaker: 0
+}
+
+Use your IP Addresses and make sure it is the Network address used for the bindnetaddr:
+We can then restart corosync and start pacemaker on both nodes:
+
+sudo systemctl restart corosync
+sudo systemctl start pacemaker
+
+On either host we can use the command crm status to see the cluster come online.
+
+sudo crm status
+
+Now we set some properties and create the cluster resources. Typing the command crm configure will take is to an interactive prompt:
+
+sudo crm configure
+> property stonith-enabled=false
+> property no-quorum-policy=ignore
+> primitive drbd_res ocf:linbit:drbd params drbd_resource=r0 op monitor interval=29s role=Master op monitor interval=31s role=Slave
+> ms drbd_master_slave drbd_res meta master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 notify=true
+> primitive fs_res ocf:heartbeat:Filesystem params device=/dev/drbd0 directory=/var/www/html fstype=ext4
+> colocation fs_drbd_colo INFINITY: fs_res drbd_master_slave:Master
+> order fs_after_drbd mandatory: drbd_master_slave:promote fs_res:start
+> commit
+> show
+> quit
+
+First we set some properties for a simple two node cluster. We then create the drbd resource that is further controlled by the ms the Master Slave set. This ensure that only one Master role is assigned to the drbd resource. We then create the file system resource to mount the drbd disk and ensure that they run together with the colocation command. The order is maintained with the order command.
+You should now have a cluster that will manage the mounting automatically. Sure we need an IP Address resource and the Apache resource to follow but this gets you started with the basics of an Ha Cluster
