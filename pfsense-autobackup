@@ -15,7 +15,7 @@ ssh-keygen  -t rsa
 
 Step 2 :  Transfer the public key to your pfsense box. 
 
-ssh-copy-id -p 2226
+ssh-copy-id -p 2226  root@10.0.0.1
 
 Step 3 :  Create a directory called Firewall  
 
@@ -27,12 +27,15 @@ Step 4 :  Create a file called fwbackup.sh
 nano fwbackup.sh
 
 Step 5 :  Enter following Text  & save the file.
-
+###  Start File
+cd
+cd /home/administrator/Firewall
 timestamp=$(date +%d-%B-%Y-%HHrs-%MMins-%SSeconds)
 f=config.xml
 scp -P 2226 root@10.0.0.1:/conf/config.xml /home/administrator/Firewall/config.xml
 cp -a "$f" "$f-$timestamp"
-
+cd 
+###  End of File
 
 Step 6 :  Create automation using crontab [  In my case , I require pfsense backup to happen everyday @ 10 pm .
 
