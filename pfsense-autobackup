@@ -1,0 +1,53 @@
+How to take auto-backup of Pfsense Firewall on a Linux Host.
+
+Process :
+1.  Setup standard pfsense firewall  as usual 
+2.  Enable ssh login to non-standard port something like 2226  ( you can choose your convenient port )
+
+
+On Ubuntu host:  [IP  10.0.100.1 my username is :  administrator  & I am a sudo user ]
+ 
+[  All Commands listed here are to be typed in Terminal ]
+
+Step 1.  Create pair of ssh keys 
+
+ssh-keygen  -t rsa
+
+Step 2 :  Transfer the public key to your pfsense box. 
+
+ssh-copy-id -p 2226
+
+Step 3 :  Create a directory called Firewall  
+
+mkdir Firewall
+cd Firewall
+
+Step 4 :  Create a file called fwbackup.sh
+
+nano fwbackup.sh
+
+Step 5 :  Enter following Text  & save the file.
+
+timestamp=$(date +%d-%B-%Y-%HHrs-%MMins-%SSeconds)
+f=config.xml
+scp -P 2226 root@10.0.0.1:/conf/config.xml /home/administrator/Firewall/config.xml
+cp -a "$f" "$f-$timestamp"
+
+
+Step 6 :  Create automation using crontab [  In my case , I require pfsense backup to happen everyday @ 10 pm .
+
+crontab -e 
+//  at the end of the file type following text  //
+0 22 * * 0  administrator  /home/administrator/Firewall/fwbackup.sh
+
+Conclusion :  You have config.xml of your pfsense box of every day.  In case of crash or you can restore your firewall without any issue + you will have all the files ( day to day ).  So can revert to any date in the past.
+
+
+
+
+
+
+
+
+
+
