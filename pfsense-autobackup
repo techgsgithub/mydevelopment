@@ -38,7 +38,7 @@ Step 6 :  Create automation using crontab [  In my case , I require pfsense back
 
 crontab -e 
 //  at the end of the file type following text  //
-0 22 * * 0  administrator  /home/administrator/Firewall/fwbackup.sh
+0 22 * * 0  sh  /home/administrator/Firewall/fwbackup.sh
 
 Conclusion :  You have config.xml of your pfsense box of every day.  In case of crash or you can restore your firewall without any issue + you will have all the files ( day to day ).  So can revert to any date in the past.
 
