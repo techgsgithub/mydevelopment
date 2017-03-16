@@ -1,0 +1,20 @@
+to check if is enabled do ("kvm_intel" for intel cpu, "kvm_amd" for AMD) 
+
+cat /sys/module/kvm_intel/parameters/nested 
+N means it's not, to enable ("kvm-intel" for intel, "kvm-amd" for AMD): 
+
+Now you can enable it
+
+echo "options kvm-intel nested=Y" > /etc/modprobe.d/kvm-intel.conf
+
+and reboot or reload the kernel modul
+
+modprobe -r kvm_intel
+modprobe kvm_intel
+
+check again 
+
+cat /sys/module/kvm_intel/parameters/nested 
+Y
+
+Done !!!
