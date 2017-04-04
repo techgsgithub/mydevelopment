@@ -1,5 +1,5 @@
 #!/bin/bash
-# This should enable to install webpanel required.
+# This should enable to install webpanel required.    https://github.com/retspen/webvirtcloud
 # to run this script be in your own home directory.
 # to run on fresh install only. 
 sudo su
