@@ -5,7 +5,7 @@ Procedure :
 
 1.  Create isolated bridge from cli only.  (  Do not use any virt-manager )
 
-      a.  Create XML File  with following code 
+      a.  Create XML File  with following codev ( privatenet.xml )
        
        <network> <name>privatenet</name> <bridge name="privatebr0" /> </network>
        
@@ -15,11 +15,11 @@ Procedure :
         
       c.  Start the bridge.
       
-        net-start privatenet
+        virsh net-start privatenet
         
       d.  Set it as auto-start bridge.
       
-        net-autostart privatenet
+        virsh net-autostart privatenet
         
         
 2.   Now Install PfSense from its iso file and set the VM as autostart( Recommended for SERVER Installation only )
